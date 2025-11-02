@@ -2,45 +2,71 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Menú principal - Expediente HGLP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel - Expediente Clínico HGLP</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #eef2f3;
+            background-color: #eef1f5;
+            margin: 0;
+            padding: 0;
         }
-        .container {
-            margin-top: 100px;
-        }
-        h1 {
-            color: #004aad;
-        }
-        .boton {
-            display: block;
-            width: 300px;
-            margin: 10px auto;
-            padding: 15px;
-            background-color: #007bff;
+        header {
+            background-color: #004085;
             color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 18px;
+            padding: 15px;
+            text-align: center;
         }
-        .boton:hover {
-            background-color: #0056b3;
+        .menu {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            padding: 20px;
+        }
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            width: 220px;
+            padding: 20px;
+            margin: 15px;
+            text-align: center;
+            box-shadow: 0 0 8px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: scale(1.05);
+        }
+        .logout {
+            background-color: crimson;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 20px auto;
+            display: block;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Menú del Expediente Clínico</h1>
-        <a href="#" class="boton">🧍 Registrar Paciente</a>
-        <a href="#" class="boton">📋 Nota de Evolución</a>
-        <a href="#" class="boton">🧪 Laboratorio</a>
-        <a href="#" class="boton">🩻 Gabinete</a>
-        <a href="#" class="boton">📄 Hoja Frontal</a>
-        <a href="#" class="boton">💊 Receta Médica</a>
-        <a href="/salir" class="boton" style="background-color:red;">🚪 Salir</a>
+    <header>
+        <h1>Bienvenido al Expediente Clínico HGLP</h1>
+    </header>
+
+    <div class="menu">
+        <div class="card" onclick="window.location.href='/nuevo_paciente'">➕ Nuevo Paciente</div>
+        <div class="card" onclick="window.location.href='/buscar'">🔍 Buscar Expediente</div>
+        <div class="card" onclick="window.location.href='/evolucion'">📋 Nota de Evolución</div>
+        <div class="card" onclick="window.location.href='/laboratorio'">🧪 Laboratorio</div>
+        <div class="card" onclick="window.location.href='/gabinete'">🩻 Gabinete</div>
+        <div class="card" onclick="window.location.href='/hoja_frontal'">📄 Hoja Frontal</div>
+        <div class="card" onclick="window.location.href='/receta'">💊 Receta Médica</div>
+        <div class="card" onclick="window.location.href='/indicaciones'">🩺 Indicaciones Médicas</div>
     </div>
+
+    <form action="/logout" method="get">
+        <button class="logout">Cerrar Sesión</button>
+    </form>
 </body>
 </html>
