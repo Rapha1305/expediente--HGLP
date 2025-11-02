@@ -1,43 +1,14 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Nuevo Paciente</title>
-    <style>
-        body { font-family: Arial; background: #f2f6fc; padding: 30px; }
-        form { background: white; max-width: 500px; margin: auto; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.2); }
-        input, select, textarea { width: 100%; margin-bottom: 12px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-        button { background: #007bff; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; }
-        button:hover { background: #0056b3; }
-        a { text-decoration: none; display: inline-block; margin-top: 10px; }
-    </style>
-</head>
-<body>
-    <h2 style="text-align:center;">Registrar Nuevo Paciente</h2>
-    <form method="POST" action="/nuevo_paciente">
-        <label>Número de expediente:</label>
-        <input type="text" name="expediente" required>
-
-        <label>Nombre completo:</label>
-        <input type="text" name="nombre" required>
-
-        <label>Fecha de nacimiento:</label>
-        <input type="date" name="fecha_nacimiento" required>
-
-        <label>Sexo:</label>
-        <select name="sexo" required>
-            <option value="">Seleccione...</option>
-            <option value="Masculino">Masculino</option>
-            <option value="Femenino">Femenino</option>
-        </select>
-
-        <label>Diagnóstico principal:</label>
-        <textarea name="diagnostico" rows="3"></textarea>
-
-        <button type="submit">Guardar Paciente</button>
-    </form>
-    <div style="text-align:center;">
-        <a href="/menu">⬅️ Volver al menú</a>
-    </div>
-</body>
-</html>
+{% extends "layout.html" %}
+{% block content %}
+<h1>Nuevo Paciente</h1>
+<form method="POST">
+    <input type="text" name="nombre" placeholder="Nombre completo" required><br>
+    <input type="number" name="edad" placeholder="Edad" required><br>
+    <select name="sexo" required>
+        <option value="">Sexo</option>
+        <option value="Masculino">Masculino</option>
+        <option value="Femenino">Femenino</option>
+    </select><br>
+    <button type="submit">Agregar Paciente</button>
+</form>
+{% endblock %}
