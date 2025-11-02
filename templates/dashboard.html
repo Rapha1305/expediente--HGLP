@@ -2,5 +2,24 @@
 {% block content %}
 <h1>Dashboard</h1>
 <p>Bienvenido, {{ session.username }}!</p>
-<p>Usa el menú lateral para navegar.</p>
+
+<div class="cards-container">
+    <div class="card">
+        <h3>Total de Pacientes</h3>
+        <p>{{ total_pacientes }}</p>
+    </div>
+    <div class="card">
+        <h3>Pacientes Recientes</h3>
+        <ul>
+            {% for paciente in recientes %}
+            <li>{{ paciente.nombre }} ({{ paciente.edad }} años)</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<div class="quick-links">
+    <a class="btn" href="{{ url_for('nuevo_paciente') }}">Agregar Nuevo Paciente</a>
+    <a class="btn" href="{{ url_for('buscar_paciente') }}">Buscar Paciente</a>
+</div>
 {% endblock %}
