@@ -3,70 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel - Expediente Clínico HGLP</title>
+    <title>Menú Principal - Expediente Clínico</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #eef1f5;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background-color: #004085;
-            color: white;
-            padding: 15px;
+            background: #e8f5e9;
             text-align: center;
+            padding-top: 80px;
+        }
+        h1 {
+            color: #2e7d32;
         }
         .menu {
             display: flex;
-            justify-content: space-around;
+            justify-content: center;
             flex-wrap: wrap;
-            padding: 20px;
+            margin-top: 40px;
+            gap: 20px;
         }
-        .card {
-            background-color: white;
-            border-radius: 10px;
-            width: 220px;
-            padding: 20px;
-            margin: 15px;
-            text-align: center;
-            box-shadow: 0 0 8px rgba(0,0,0,0.2);
-            cursor: pointer;
-            transition: transform 0.2s;
+        .menu a {
+            display: block;
+            padding: 15px 30px;
+            background-color: #43a047;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 18px;
         }
-        .card:hover {
-            transform: scale(1.05);
+        .menu a:hover {
+            background-color: #2e7d32;
         }
         .logout {
-            background-color: crimson;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ef5350;
+            padding: 10px 15px;
             color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin: 20px auto;
-            display: block;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+        .logout:hover {
+            background: #c62828;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Bienvenido al Expediente Clínico HGLP</h1>
-    </header>
-
+    <a href="/logout" class="logout">Salir</a>
+    <h1>Menú Principal</h1>
     <div class="menu">
-        <div class="card" onclick="window.location.href='/nuevo_paciente'">➕ Nuevo Paciente</div>
-        <div class="card" onclick="window.location.href='/buscar'">🔍 Buscar Expediente</div>
-        <div class="card" onclick="window.location.href='/evolucion'">📋 Nota de Evolución</div>
-        <div class="card" onclick="window.location.href='/laboratorio'">🧪 Laboratorio</div>
-        <div class="card" onclick="window.location.href='/gabinete'">🩻 Gabinete</div>
-        <div class="card" onclick="window.location.href='/hoja_frontal'">📄 Hoja Frontal</div>
-        <div class="card" onclick="window.location.href='/receta'">💊 Receta Médica</div>
-        <div class="card" onclick="window.location.href='/indicaciones'">🩺 Indicaciones Médicas</div>
+        <a href="/nuevo_paciente">➕ Nuevo Paciente</a>
+        <a href="#">📋 Nota de Evolución</a>
+        <a href="#">🧪 Laboratorio</a>
+        <a href="#">🩻 Gabinete</a>
+        <a href="#">📄 Hoja Frontal</a>
+        <a href="#">💊 Receta Médica</a>
+        <a href="#">🔍 Buscar Expediente</a>
     </div>
-
-    <form action="/logout" method="get">
-        <button class="logout">Cerrar Sesión</button>
-    </form>
 </body>
 </html>
