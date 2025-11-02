@@ -1,129 +1,140 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
-import sqlite3
-import os
+import sys
+from PyQt5.QtWidgets import (
+    QApplication, QWidget, QMainWindow, QPushButton, QLabel, QLineEdit,
+    QVBoxLayout, QHBoxLayout, QStackedWidget, QMessageBox, QFrame
+)
+from PyQt5.QtGui import QIcon, QFont, QColor, QPalette
+from PyQt5.QtCore import Qt
 
-app = Flask(__name__)
-app.secret_key = 'expediente_clinico_seguro_2025'  # 🔒 Necesario para usar sesiones y mensajes flash
+# --------------------------- Login Window --------------------------- #
+class LoginWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Login - PHEDS")
+        self.setFixedSize(400, 300)
+        self.initUI()
 
-# -------------------------
-# CREAR BASE DE DATOS SI NO EXISTE
-# -------------------------
-def init_db():
-    if not os.path.exists('pacientes.db'):
-        conn = sqlite3.connect('pacientes.db')
-        c = conn.cursor()
-        c.execute('''
-            CREATE TABLE pacientes (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                expediente TEXT UNIQUE,
-                nombre TEXT,
-                fecha_nacimiento TEXT,
-                sexo TEXT,
-                diagnostico TEXT
-            )
-        ''')
-        conn.commit()
-        conn.close()
-        print("✅ Base de datos creada correctamente")
-    else:
-        print("📁 Base de datos ya existente")
+    def initUI(self):
+        layout = QVBoxLayout()
 
-# -------------------------
-# RUTA DE LOGIN
-# -------------------------
-@app.route('/', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        usuario = request.form['usuario']
-        contraseña = request.form['contraseña']
+        title = QLabel("PHEDS - Login")
+        title.setFont(QFont('Arial', 18))
+        title.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title)
 
-        # Usuario y contraseña de prueba
-        if usuario == 'admin' and contraseña == '1234':
-            session['usuario'] = usuario
-            flash('Inicio de sesión exitoso.', 'success')
-            return redirect(url_for('menu'))
+        self.user_input = QLineEdit()
+        self.user_input.setPlaceholderText("Usuario")
+        layout.addWidget(self.user_input)
+
+        self.pass_input = QLineEdit()
+        self.pass_input.setPlaceholderText("Contraseña")
+        self.pass_input.setEchoMode(QLineEdit.Password)
+        layout.addWidget(self.pass_input)
+
+        login_btn = QPushButton("Ingresar")
+        login_btn.setStyleSheet("background-color: #2E8B57; color: white; font-weight: bold; height: 35px;")
+        login_btn.clicked.connect(self.check_login)
+        layout.addWidget(login_btn)
+
+        self.setLayout(layout)
+
+    def check_login(self):
+        username = self.user_input.text()
+        password = self.pass_input.text()
+
+        # Usuario y contraseña de ejemplo
+        if username == "admin" and password == "admin123":
+            self.main_window = MainWindow()
+            self.main_window.show()
+            self.close()
         else:
-            flash('Usuario o contraseña incorrectos.', 'danger')
-            return redirect(url_for('login'))
-    return render_template('login.html')
+            QMessageBox.warning(self, "Error", "Usuario o contraseña incorrectos")
 
-# -------------------------
-# RUTA DE MENÚ PRINCIPAL
-# -------------------------
-@app.route('/menu')
-def menu():
-    if 'usuario' not in session:
-        return redirect(url_for('login'))
-    return render_template('menu.html')
+# --------------------------- Main Window --------------------------- #
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("PHEDS - Expediente Clínico")
+        self.setFixedSize(1000, 600)
+        self.initUI()
 
-# -------------------------
-# RUTA NUEVO PACIENTE
-# -------------------------
-@app.route('/nuevo_paciente', methods=['GET', 'POST'])
-def nuevo_paciente():
-    if 'usuario' not in session:
-        return redirect(url_for('login'))
+    def initUI(self):
+        # --- Layout principal ---
+        main_widget = QWidget()
+        main_layout = QHBoxLayout()
+        main_widget.setLayout(main_layout)
+        self.setCentralWidget(main_widget)
 
-    if request.method == 'POST':
-        expediente = request.form['expediente']
-        nombre = request.form['nombre']
-        fecha_nacimiento = request.form['fecha_nacimiento']
-        sexo = request.form['sexo']
-        diagnostico = request.form['diagnostico']
+        # --- Menú lateral ---
+        menu_frame = QFrame()
+        menu_frame.setFixedWidth(200)
+        menu_frame.setStyleSheet("background-color: #f0f0f0;")
+        menu_layout = QVBoxLayout()
+        menu_layout.setContentsMargins(10, 10, 10, 10)
+        menu_layout.setSpacing(15)
+        menu_frame.setLayout(menu_layout)
 
-        conn = sqlite3.connect('pacientes.db')
-        c = conn.cursor()
-        try:
-            c.execute('''
-                INSERT INTO pacientes (expediente, nombre, fecha_nacimiento, sexo, diagnostico)
-                VALUES (?, ?, ?, ?, ?)
-            ''', (expediente, nombre, fecha_nacimiento, sexo, diagnostico))
-            conn.commit()
-            flash('Paciente agregado exitosamente.', 'success')
-        except sqlite3.IntegrityError:
-            flash('⚠️ El número de expediente ya existe.', 'danger')
-        finally:
-            conn.close()
+        # Logos pequeños arriba
+        logo_label = QLabel("LOGO")
+        logo_label.setAlignment(Qt.AlignCenter)
+        logo_label.setFont(QFont("Arial", 14, QFont.Bold))
+        menu_layout.addWidget(logo_label)
 
-        return redirect(url_for('nuevo_paciente'))
+        # Botones del menú
+        buttons_info = [
+            ("Hoja Frontal", 0),
+            ("Nota de Evolución", 1),
+            ("Indicaciones Médicas", 2),
+            ("Solicitud de Laboratorio e Imagen", 3),
+            ("Signos Vitales", 4),
+            ("Resumen", 5)
+        ]
+        self.menu_buttons = []
 
-    return render_template('nuevo_paciente.html')
+        for text, index in buttons_info:
+            btn = QPushButton(text)
+            btn.setStyleSheet("background-color: #2E8B57; color: white; font-weight: bold; height: 40px;")
+            btn.clicked.connect(lambda checked, idx=index: self.display_page(idx))
+            menu_layout.addWidget(btn)
+            self.menu_buttons.append(btn)
 
-# -------------------------
-# RUTA BUSCAR PACIENTE
-# -------------------------
-@app.route('/buscar_paciente', methods=['GET', 'POST'])
-def buscar_paciente():
-    if 'usuario' not in session:
-        return redirect(url_for('login'))
+        menu_layout.addStretch()
 
-    resultados = []
-    if request.method == 'POST':
-        busqueda = request.form['busqueda']
-        conn = sqlite3.connect('pacientes.db')
-        c = conn.cursor()
-        c.execute("""
-            SELECT expediente, nombre, fecha_nacimiento, sexo, diagnostico
-            FROM pacientes
-            WHERE nombre LIKE ? OR expediente LIKE ?
-        """, (f'%{busqueda}%', f'%{busqueda}%'))
-        resultados = c.fetchall()
-        conn.close()
+        # --- Área de contenido ---
+        self.stack = QStackedWidget()
+        self.pages = []
 
-    return render_template('buscar_paciente.html', resultados=resultados)
+        # Creación de páginas
+        page_titles = [
+            "Hoja Frontal",
+            "Nota de Evolución",
+            "Indicaciones Médicas",
+            "Solicitud de Laboratorio e Imagen",
+            "Signos Vitales",
+            "Resumen"
+        ]
 
-# -------------------------
-# CERRAR SESIÓN
-# -------------------------
-@app.route('/logout')
-def logout():
-    session.pop('usuario', None)
-    flash('Sesión cerrada correctamente.', 'info')
-    return redirect(url_for('login'))
+        for title in page_titles:
+            page = QWidget()
+            layout = QVBoxLayout()
+            label = QLabel(title)
+            label.setFont(QFont("Arial", 16))
+            label.setAlignment(Qt.AlignCenter)
+            layout.addWidget(label)
+            page.setLayout(layout)
+            self.stack.addWidget(page)
+            self.pages.append(page)
 
-# -------------------------
-# EJECUTAR APP
-# -------------------------
-if __name__ == '__main__':
-    init_db()
-    app.run(debug=True)
+        # --- Layout final ---
+        main_layout.addWidget(menu_frame)
+        main_layout.addWidget(self.stack)
+
+    def display_page(self, index):
+        self.stack.setCurrentIndex(index)
+
+# --------------------------- Aplicación --------------------------- #
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    login = LoginWindow()
+    login.show()
+    sys.exit(app.exec_())
