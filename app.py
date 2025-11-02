@@ -1,70 +1,60 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask import Flask, render_template, request, redirect, url_for
 import sqlite3
 
-app = Flask(__name__)
-app.secret_key = "expediente_hglp_key"
+app = Flask(_name_)
 
 # --- Base de datos ---
-def init_db():
-    with sqlite3.connect("expedienteHGLP.db") as con:
-        cur = con.cursor()
-        cur.execute("""CREATE TABLE IF NOT EXISTS users (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        username TEXT UNIQUE,
-                        password TEXT,
-                        role TEXT
-                    )""")
-        con.commit()
+def crear_tabla_usuarios():
+    conn = sqlite3.connect('usuarios.db')
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            usuario TEXT UNIQUE NOT NULL,
+            contrasena TEXT NOT NULL
+        )
+    ''')
+    conn.commit()
+    conn.close()
 
-init_db()
+def crear_usuario_inicial():
+    conn = sqlite3.connect('usuarios.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM usuarios WHERE usuario = 'admin'")
+    if not c.fetchone():
+        c.execute("INSERT INTO usuarios (nombre, usuario, contrasena) VALUES (?, ?, ?)",
+                  ('Administrador', 'admin', 'admin'))
+    conn.commit()
+    conn.close()
 
 # --- Rutas ---
-@app.route("/")
+@app.route('/')
 def login():
-    return render_template("login.html")
+    return render_template('login.html')
 
-@app.route("/login", methods=["POST"])
-def do_login():
-    username = request.form["username"]
-    password = request.form["password"]
+@app.route('/validar', methods=['POST'])
+def validar():
+    usuario = request.form['usuario']
+    contrasena = request.form['contrasena']
 
-    with sqlite3.connect("expedienteHGLP.db") as con:
-        cur = con.cursor()
-        cur.execute("SELECT * FROM users WHERE username=?", (username,))
-        user = cur.fetchone()
+    conn = sqlite3.connect('usuarios.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM usuarios WHERE usuario = ? AND contrasena = ?", (usuario, contrasena))
+    user = c.fetchone()
+    conn.close()
 
-    if user and check_password_hash(user[2], password):
-        session["user"] = username
-        return redirect(url_for("dashboard"))
+    if user:
+        return redirect(url_for('panel'))
     else:
-        flash("Usuario o contraseña incorrectos")
-        return redirect(url_for("login"))
+        return "Usuario o contraseña incorrectos"
 
-@app.route("/dashboard")
-def dashboard():
-    if "user" in session:
-        return render_template("dashboard.html", user=session["user"])
-    else:
-        return redirect(url_for("login"))
+@app.route('/panel')
+def panel():
+    return "<h1>Bienvenido al expediente clínico HGLP</h1>"
 
-@app.route("/logout")
-def logout():
-    session.pop("user", None)
-    return redirect(url_for("login"))
-
-# --- Usuario inicial ---
-def crear_usuario_inicial():
-    with sqlite3.connect("expedienteHGLP.db") as con:
-        cur = con.cursor()
-        cur.execute("SELECT * FROM users WHERE username='admin'")
-        if not cur.fetchone():
-            hashed = generate_password_hash("admin123")
-            cur.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
-                        ("admin", hashed, "Administrador"))
-            con.commit()
-
-crear_usuario_inicial()
-
+# --- Inicialización ---
 if _name_ == "_main_":
+    crear_tabla_usuarios()
+    crear_usuario_inicial()
     app.run(host="0.0.0.0", port=10000)
