@@ -2,63 +2,26 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menú Principal - Expediente Clínico</title>
+    <title>Menú Principal</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #e8f5e9;
-            text-align: center;
-            padding-top: 80px;
-        }
-        h1 {
-            color: #2e7d32;
-        }
-        .menu {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 40px;
-            gap: 20px;
-        }
-        .menu a {
-            display: block;
-            padding: 15px 30px;
-            background-color: #43a047;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 18px;
-        }
-        .menu a:hover {
-            background-color: #2e7d32;
-        }
-        .logout {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #ef5350;
-            padding: 10px 15px;
-            color: white;
-            border-radius: 5px;
-            text-decoration: none;
-        }
-        .logout:hover {
-            background: #c62828;
-        }
+        body { font-family: Arial; background-color: #f4f7fc; text-align: center; padding-top: 50px; }
+        .menu { display: inline-block; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 0 12px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        a { display: block; margin: 10px auto; width: 250px; background: #007bff; color: white; padding: 12px; text-decoration: none; border-radius: 8px; }
+        a:hover { background: #0056b3; }
     </style>
 </head>
 <body>
-    <a href="/logout" class="logout">Salir</a>
-    <h1>Menú Principal</h1>
     <div class="menu">
-        <a href="/nuevo_paciente">➕ Nuevo Paciente</a>
-        <a href="#">📋 Nota de Evolución</a>
-        <a href="#">🧪 Laboratorio</a>
-        <a href="#">🩻 Gabinete</a>
-        <a href="#">📄 Hoja Frontal</a>
-        <a href="#">💊 Receta Médica</a>
-        <a href="#">🔍 Buscar Expediente</a>
+        <h1>Menú Principal</h1>
+        <a href="/nuevo_paciente">➕ Registrar nuevo paciente</a>
+        <a href="/buscar_paciente">🔍 Buscar expediente</a>
+        <a href="#">🩺 Nota de evolución (pendiente)</a>
+        <a href="#">🧪 Laboratorio (pendiente)</a>
+        <a href="#">🩻 Gabinete (pendiente)</a>
+        <a href="#">📄 Hoja frontal (pendiente)</a>
+        <a href="#">💊 Receta médica (pendiente)</a>
+        <a href="/logout" style="background:#dc3545;">🚪 Cerrar sesión</a>
     </div>
 </body>
 </html>
