@@ -72,7 +72,6 @@ def dashboard():
     conn.close()
     return render_template("dashboard.html", total_pacientes=total_pacientes, recientes=recientes)
 
-
 @app.route("/nuevo_paciente", methods=["GET", "POST"])
 @login_required
 def nuevo_paciente():
@@ -83,4 +82,46 @@ def nuevo_paciente():
         sexo = request.form["sexo"]
         conn = get_db_connection()
         conn.execute(
-            "INSERT INTO paci
+            "INSERT INTO pacientes (nombre, fecha_nacimiento, expediente, sexo) VALUES (?, ?, ?, ?)",
+            (nombre, fecha_nacimiento, expediente, sexo)
+        )
+        conn.commit()
+        conn.close()
+        flash("Paciente agregado correctamente")
+        return redirect(url_for("dashboard"))
+    return render_template("nuevo_paciente.html")
+
+@app.route("/buscar_paciente", methods=["GET", "POST"])
+@login_required
+def buscar_paciente():
+    pacientes = []
+    if request.method == "POST":
+        query = request.form["query"]
+        conn = get_db_connection()
+        pacientes = conn.execute(
+            """SELECT * FROM pacientes 
+               WHERE nombre LIKE ? 
+                  OR fecha_nacimiento LIKE ? 
+                  OR expediente LIKE ?""",
+            ('%' + query + '%', '%' + query + '%', '%' + query + '%')
+        ).fetchall()
+        conn.close()
+    return render_template("buscar_paciente.html", pacientes=pacientes)
+
+@app.route("/paciente/<int:id>")
+@login_required
+def paciente_detalle(id):
+    conn = get_db_connection()
+    paciente = conn.execute("SELECT * FROM pacientes WHERE id=?", (id,)).fetchone()
+    conn.close()
+    return render_template("paciente_detalle.html", paciente=paciente)
+
+# ---------------------- Inicializar DB ---------------------- #
+if __name__ == "__main__":
+    init_db()
+    # Crear usuario admin
+    conn = get_db_connection()
+    conn.execute("INSERT OR IGNORE INTO users (username, password) VALUES (?, ?)", ("admin", "admin123"))
+    conn.commit()
+    conn.close()
+    app.run(debug=True, host='0.0.0.0')
