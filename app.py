@@ -1,140 +1,112 @@
-import sys
-from PyQt5.QtWidgets import (
-    QApplication, QWidget, QMainWindow, QPushButton, QLabel, QLineEdit,
-    QVBoxLayout, QHBoxLayout, QStackedWidget, QMessageBox, QFrame
-)
-from PyQt5.QtGui import QIcon, QFont, QColor, QPalette
-from PyQt5.QtCore import Qt
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+import sqlite3
+from functools import wraps
 
-# --------------------------- Login Window --------------------------- #
-class LoginWindow(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Login - PHEDS")
-        self.setFixedSize(400, 300)
-        self.initUI()
+app = Flask(__name__)
+app.secret_key = "HGLP_SECRET_KEY"
 
-    def initUI(self):
-        layout = QVBoxLayout()
+# ---------------------- DB ---------------------- #
+def init_db():
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+    # Usuarios
+    c.execute("""CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT UNIQUE NOT NULL,
+                    password TEXT NOT NULL
+                 )""")
+    # Pacientes
+    c.execute("""CREATE TABLE IF NOT EXISTS pacientes (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    nombre TEXT,
+                    edad INTEGER,
+                    sexo TEXT
+                 )""")
+    conn.commit()
+    conn.close()
 
-        title = QLabel("PHEDS - Login")
-        title.setFont(QFont('Arial', 18))
-        title.setAlignment(Qt.AlignCenter)
-        layout.addWidget(title)
+def get_db_connection():
+    conn = sqlite3.connect("database.db")
+    conn.row_factory = sqlite3.Row
+    return conn
 
-        self.user_input = QLineEdit()
-        self.user_input.setPlaceholderText("Usuario")
-        layout.addWidget(self.user_input)
+# ---------------------- Decorador login ---------------------- #
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if "user_id" not in session:
+            return redirect(url_for("login"))
+        return f(*args, **kwargs)
+    return decorated
 
-        self.pass_input = QLineEdit()
-        self.pass_input.setPlaceholderText("Contraseña")
-        self.pass_input.setEchoMode(QLineEdit.Password)
-        layout.addWidget(self.pass_input)
-
-        login_btn = QPushButton("Ingresar")
-        login_btn.setStyleSheet("background-color: #2E8B57; color: white; font-weight: bold; height: 35px;")
-        login_btn.clicked.connect(self.check_login)
-        layout.addWidget(login_btn)
-
-        self.setLayout(layout)
-
-    def check_login(self):
-        username = self.user_input.text()
-        password = self.pass_input.text()
-
-        # Usuario y contraseña de ejemplo
-        if username == "admin" and password == "admin123":
-            self.main_window = MainWindow()
-            self.main_window.show()
-            self.close()
+# ---------------------- Rutas ---------------------- #
+@app.route("/", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+        conn = get_db_connection()
+        user = conn.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password)).fetchone()
+        conn.close()
+        if user:
+            session["user_id"] = user["id"]
+            session["username"] = user["username"]
+            return redirect(url_for("dashboard"))
         else:
-            QMessageBox.warning(self, "Error", "Usuario o contraseña incorrectos")
+            flash("Usuario o contraseña incorrectos")
+            return redirect(url_for("login"))
+    return render_template("login.html")
 
-# --------------------------- Main Window --------------------------- #
-class MainWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("PHEDS - Expediente Clínico")
-        self.setFixedSize(1000, 600)
-        self.initUI()
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
 
-    def initUI(self):
-        # --- Layout principal ---
-        main_widget = QWidget()
-        main_layout = QHBoxLayout()
-        main_widget.setLayout(main_layout)
-        self.setCentralWidget(main_widget)
+@app.route("/dashboard")
+@login_required
+def dashboard():
+    return render_template("dashboard.html")
 
-        # --- Menú lateral ---
-        menu_frame = QFrame()
-        menu_frame.setFixedWidth(200)
-        menu_frame.setStyleSheet("background-color: #f0f0f0;")
-        menu_layout = QVBoxLayout()
-        menu_layout.setContentsMargins(10, 10, 10, 10)
-        menu_layout.setSpacing(15)
-        menu_frame.setLayout(menu_layout)
+@app.route("/nuevo_paciente", methods=["GET", "POST"])
+@login_required
+def nuevo_paciente():
+    if request.method == "POST":
+        nombre = request.form["nombre"]
+        edad = request.form["edad"]
+        sexo = request.form["sexo"]
+        conn = get_db_connection()
+        conn.execute("INSERT INTO pacientes (nombre, edad, sexo) VALUES (?, ?, ?)", (nombre, edad, sexo))
+        conn.commit()
+        conn.close()
+        flash("Paciente agregado correctamente")
+        return redirect(url_for("dashboard"))
+    return render_template("nuevo_paciente.html")
 
-        # Logos pequeños arriba
-        logo_label = QLabel("LOGO")
-        logo_label.setAlignment(Qt.AlignCenter)
-        logo_label.setFont(QFont("Arial", 14, QFont.Bold))
-        menu_layout.addWidget(logo_label)
+@app.route("/buscar_paciente", methods=["GET", "POST"])
+@login_required
+def buscar_paciente():
+    pacientes = []
+    if request.method == "POST":
+        nombre = request.form["nombre"]
+        conn = get_db_connection()
+        pacientes = conn.execute("SELECT * FROM pacientes WHERE nombre LIKE ?", ('%' + nombre + '%',)).fetchall()
+        conn.close()
+    return render_template("buscar_paciente.html", pacientes=pacientes)
 
-        # Botones del menú
-        buttons_info = [
-            ("Hoja Frontal", 0),
-            ("Nota de Evolución", 1),
-            ("Indicaciones Médicas", 2),
-            ("Solicitud de Laboratorio e Imagen", 3),
-            ("Signos Vitales", 4),
-            ("Resumen", 5)
-        ]
-        self.menu_buttons = []
+@app.route("/paciente/<int:id>")
+@login_required
+def paciente_detalle(id):
+    conn = get_db_connection()
+    paciente = conn.execute("SELECT * FROM pacientes WHERE id=?", (id,)).fetchone()
+    conn.close()
+    return render_template("paciente_detalle.html", paciente=paciente)
 
-        for text, index in buttons_info:
-            btn = QPushButton(text)
-            btn.setStyleSheet("background-color: #2E8B57; color: white; font-weight: bold; height: 40px;")
-            btn.clicked.connect(lambda checked, idx=index: self.display_page(idx))
-            menu_layout.addWidget(btn)
-            self.menu_buttons.append(btn)
-
-        menu_layout.addStretch()
-
-        # --- Área de contenido ---
-        self.stack = QStackedWidget()
-        self.pages = []
-
-        # Creación de páginas
-        page_titles = [
-            "Hoja Frontal",
-            "Nota de Evolución",
-            "Indicaciones Médicas",
-            "Solicitud de Laboratorio e Imagen",
-            "Signos Vitales",
-            "Resumen"
-        ]
-
-        for title in page_titles:
-            page = QWidget()
-            layout = QVBoxLayout()
-            label = QLabel(title)
-            label.setFont(QFont("Arial", 16))
-            label.setAlignment(Qt.AlignCenter)
-            layout.addWidget(label)
-            page.setLayout(layout)
-            self.stack.addWidget(page)
-            self.pages.append(page)
-
-        # --- Layout final ---
-        main_layout.addWidget(menu_frame)
-        main_layout.addWidget(self.stack)
-
-    def display_page(self, index):
-        self.stack.setCurrentIndex(index)
-
-# --------------------------- Aplicación --------------------------- #
+# ---------------------- Inicializar DB ---------------------- #
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    login = LoginWindow()
-    login.show()
-    sys.exit(app.exec_())
+    init_db()
+    # Crear usuario admin
+    conn = get_db_connection()
+    conn.execute("INSERT OR IGNORE INTO users (username, password) VALUES (?, ?)", ("admin", "admin123"))
+    conn.commit()
+    conn.close()
+    app.run(debug=True, host='0.0.0.0')
