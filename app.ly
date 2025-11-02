@@ -67,4 +67,5 @@ def crear_usuario_inicial():
 crear_usuario_inicial()
 
 if _name_ == "_main_":
-    app.run(debug=True)
+    app.run(host='0.0.0.0'
+port=10000)
