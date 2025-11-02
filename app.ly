@@ -1,97 +1,70 @@
-from flask import Flask, render_template, request, redirect, url_for, session
-import sqlite3, os
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
+import sqlite3
 
 app = Flask(_name_)
 app.secret_key = "expediente_hglp_key"
 
-# --------------------------
-# Base de datos
-# --------------------------
-DB_NAME = "expediente_hglp.db"
-
+# --- Base de datos ---
 def init_db():
-    if not os.path.exists(DB_NAME):
-        conn = sqlite3.connect(DB_NAME)
-        c = conn.cursor()
-        c.execute('''CREATE TABLE users (
+    with sqlite3.connect("expedienteHGLP.db") as con:
+        cur = con.cursor()
+        cur.execute("""CREATE TABLE IF NOT EXISTS users (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         username TEXT UNIQUE,
                         password TEXT,
                         role TEXT
-                    )''')
-        c.execute('''CREATE TABLE pacientes (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        nombre TEXT,
-                        edad INTEGER,
-                        sexo TEXT,
-                        diagnostico TEXT,
-                        cie11 TEXT,
-                        notas TEXT
-                    )''')
-        # Usuario administrador inicial
-        c.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
-                  ("admin", generate_password_hash("admin123"), "admin"))
-        conn.commit()
-        conn.close()
+                    )""")
+        con.commit()
 
 init_db()
 
-# --------------------------
-# Rutas principales
-# --------------------------
+# --- Rutas ---
 @app.route("/")
-def index():
-    if "user" in session:
-        return redirect(url_for("dashboard"))
+def login():
     return render_template("login.html")
 
 @app.route("/login", methods=["POST"])
-def login():
+def do_login():
     username = request.form["username"]
     password = request.form["password"]
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    c.execute("SELECT * FROM users WHERE username=?", (username,))
-    user = c.fetchone()
-    conn.close()
-    if user and check_password_hash(user[2], password):
-        session["user"] = user[1]
-        session["role"] = user[3]
-        return redirect(url_for("dashboard"))
-    return render_template("login.html", error="Usuario o contraseña incorrectos")
 
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("index"))
+    with sqlite3.connect("expedienteHGLP.db") as con:
+        cur = con.cursor()
+        cur.execute("SELECT * FROM users WHERE username=?", (username,))
+        user = cur.fetchone()
+
+    if user and check_password_hash(user[2], password):
+        session["user"] = username
+        return redirect(url_for("dashboard"))
+    else:
+        flash("Usuario o contraseña incorrectos")
+        return redirect(url_for("login"))
 
 @app.route("/dashboard")
 def dashboard():
-    if "user" not in session:
-        return redirect(url_for("index"))
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    c.execute("SELECT * FROM pacientes")
-    pacientes = c.fetchall()
-    conn.close()
-    return render_template("dashboard.html", pacientes=pacientes, user=session["user"])
+    if "user" in session:
+        return render_template("dashboard.html", user=session["user"])
+    else:
+        return redirect(url_for("login"))
 
-@app.route("/nuevo_paciente", methods=["POST"])
-def nuevo_paciente():
-    nombre = request.form["nombre"]
-    edad = request.form["edad"]
-    sexo = request.form["sexo"]
-    diagnostico = request.form["diagnostico"]
-    cie11 = request.form["cie11"]
-    notas = request.form["notas"]
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    c.execute("INSERT INTO pacientes (nombre, edad, sexo, diagnostico, cie11, notas) VALUES (?, ?, ?, ?, ?, ?)",
-              (nombre, edad, sexo, diagnostico, cie11, notas))
-    conn.commit()
-    conn.close()
-    return redirect(url_for("dashboard"))
+@app.route("/logout")
+def logout():
+    session.pop("user", None)
+    return redirect(url_for("login"))
+
+# --- Usuario inicial ---
+def crear_usuario_inicial():
+    with sqlite3.connect("expedienteHGLP.db") as con:
+        cur = con.cursor()
+        cur.execute("SELECT * FROM users WHERE username='admin'")
+        if not cur.fetchone():
+            hashed = generate_password_hash("admin123")
+            cur.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
+                        ("admin", hashed, "Administrador"))
+            con.commit()
+
+crear_usuario_inicial()
 
 if _name_ == "_main_":
     app.run(debug=True)
