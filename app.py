@@ -66,7 +66,12 @@ def logout():
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    return render_template("dashboard.html")
+    conn = get_db_connection()
+    total_pacientes = conn.execute("SELECT COUNT(*) as total FROM pacientes").fetchone()["total"]
+    recientes = conn.execute("SELECT * FROM pacientes ORDER BY id DESC LIMIT 5").fetchall()
+    conn.close()
+    return render_template("dashboard.html", total_pacientes=total_pacientes, recientes=recientes)
+
 
 @app.route("/nuevo_paciente", methods=["GET", "POST"])
 @login_required
