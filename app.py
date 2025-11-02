@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for
 import sqlite3
 
-app = Flask(_name_)
+app = Flask(__name__)
 
 # --- Base de datos ---
 def crear_tabla_usuarios():
@@ -54,7 +54,7 @@ def panel():
     return "<h1>Bienvenido al expediente clínico HGLP</h1>"
 
 # --- Inicialización ---
-if _name_ == "_main_":
+if __name__ == "__main__":
     crear_tabla_usuarios()
     crear_usuario_inicial()
     app.run(host="0.0.0.0", port=10000)
