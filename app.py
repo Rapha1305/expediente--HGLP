@@ -1,60 +1,52 @@
-from flask import Flask, render_template, request, redirect, url_for
-import sqlite3
-
-app = Flask(__name__)
-
-# --- Base de datos ---
-def crear_tabla_usuarios():
-    conn = sqlite3.connect('usuarios.db')
-    c = conn.cursor()
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS usuarios (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT NOT NULL,
-            usuario TEXT UNIQUE NOT NULL,
-            contrasena TEXT NOT NULL
-        )
-    ''')
-    conn.commit()
-    conn.close()
-
-def crear_usuario_inicial():
-    conn = sqlite3.connect('usuarios.db')
-    c = conn.cursor()
-    c.execute("SELECT * FROM usuarios WHERE usuario = 'admin'")
-    if not c.fetchone():
-        c.execute("INSERT INTO usuarios (nombre, usuario, contrasena) VALUES (?, ?, ?)",
-                  ('Administrador', 'admin', 'admin'))
-    conn.commit()
-    conn.close()
-
-# --- Rutas ---
-@app.route('/')
-def login():
-    return render_template('login.html')
-
-@app.route('/validar', methods=['POST'])
-def validar():
-    usuario = request.form['usuario']
-    contrasena = request.form['contrasena']
-
-    conn = sqlite3.connect('usuarios.db')
-    c = conn.cursor()
-    c.execute("SELECT * FROM usuarios WHERE usuario = ? AND contrasena = ?", (usuario, contrasena))
-    user = c.fetchone()
-    conn.close()
-
-    if user:
-        return redirect(url_for('panel'))
-    else:
-        return "Usuario o contraseña incorrectos"
-
-@app.route('/panel')
-def panel():
-    return "<h1>Bienvenido al expediente clínico HGLP</h1>"
-
-# --- Inicialización ---
-if __name__ == "__main__":
-    crear_tabla_usuarios()
-    crear_usuario_inicial()
-    app.run(host="0.0.0.0", port=10000)
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Expediente Clínico</title>
+    <style>
+        body {
+            background-color: #f5f5f5;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .login-box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            width: 300px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 15px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h2>Ingreso al Sistema</h2>
+        <form action="/validar" method="POST">
+            <input type="text" name="usuario" placeholder="Usuario" required>
+            <input type="password" name="contrasena" placeholder="Contraseña" required>
+            <button type="submit">Ingresar</button>
+        </form>
+    </div>
+</body>
+</html>
