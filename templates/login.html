@@ -1,23 +1,11 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Expediente Clínico</title>
-    <style>
-        body { font-family: Arial; background: #e9f0f5; text-align: center; padding-top: 80px; }
-        form { background: white; width: 300px; margin: auto; padding: 25px; border-radius: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.2); }
-        input { display: block; width: 90%; margin: 10px auto; padding: 8px; border-radius: 5px; border: 1px solid #aaa; }
-        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
-        button:hover { background: #0056b3; }
-    </style>
-</head>
-<body>
-    <h2>Expediente Clínico HGLP</h2>
-    <form method="POST" action="/">
-        <input type="text" name="usuario" placeholder="Usuario" required>
-        <input type="password" name="contraseña" placeholder="Contraseña" required>
+{% extends "layout.html" %}
+{% block content %}
+<div class="login-container">
+    <h2>Login</h2>
+    <form method="POST">
+        <input type="text" name="username" placeholder="Usuario" required>
+        <input type="password" name="password" placeholder="Contraseña" required>
         <button type="submit">Ingresar</button>
     </form>
-</body>
-</html>
+</div>
+{% endblock %}
