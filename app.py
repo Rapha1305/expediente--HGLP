@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for
 import sqlite3
 
-app = Flask(_name_)
+app = Flask(__name__)
 
 # --- Base de datos ---
 def crear_tabla_usuarios():
