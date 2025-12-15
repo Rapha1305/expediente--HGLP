@@ -1,3 +1,6 @@
+from pdf_nota_isem import generar_nota_isem
+from flask import send_file
+
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 import sqlite3
 from functools import wraps
@@ -125,3 +128,31 @@ if __name__ == "__main__":
     conn.commit()
     conn.close()
     app.run(debug=True, host='0.0.0.0')
+@app.route("/nota/<int:id>/pdf")
+def nota_pdf(id):
+
+    data = {
+        "unidad": "HGLP",
+        "paciente": "PACIENTE PRUEBA",
+        "edad": 55,
+        "sexo": "M",
+        "expediente": "MI-00123",
+        "sv": {
+            "ta": "120/80",
+            "temp": "36.5",
+            "fc": "78",
+            "fr": "18",
+            "peso": "70",
+            "talla": "1.70"
+        },
+        "nota": "Paciente en evolución favorable.\nSin datos de alarma.",
+        "diagnosticos": [
+            {"desc": "Insuficiencia renal crónica estadio 5", "cie11": "GB61"}
+        ],
+        "medico": "Dr. Medicina Interna",
+        "cedula": "1234567"
+    }
+
+    output = "nota_isem.pdf"
+    generar_nota_isem(data, output)
+    return send_file(output, as_attachment=True)
