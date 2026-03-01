@@ -1,7 +1,70 @@
-{% extends "layout.html" %}
-{% block content %}
-<h1>Detalle del Paciente</h1>
-<p><strong>Nombre:</strong> {{ paciente.nombre }}</p>
-<p><strong>Edad:</strong> {{ paciente.edad }}</p>
-<p><strong>Sexo:</strong> {{ paciente.sexo }}</p>
-{% endblock %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Detalle del Paciente</title>
+</head>
+<body>
+
+<h2>Detalle del Paciente</h2>
+
+<p><strong>Nombre:</strong> {{ paciente[1] }}</p>
+<p><strong>Edad:</strong> {{ paciente[2] }}</p>
+<p><strong>Sexo:</strong> {{ paciente[3] }}</p>
+<p><strong>Fecha registro:</strong> {{ paciente[4] }}</p>
+
+<hr>
+
+<h3>Acciones</h3>
+
+<a href="{{ url_for('nota_ingreso', paciente_id=paciente[0]) }}">
+    <button>Agregar Nota de Ingreso</button>
+</a>
+
+<a href="{{ url_for('nota_evolucion', paciente_id=paciente[0]) }}">
+    <button>Nueva Nota de Evolución</button>
+</a>
+
+<a href="{{ url_for('indicaciones', paciente_id=paciente[0]) }}">
+    <button>Indicaciones Médicas</button>
+</a>
+
+<a href="{{ url_for('laboratorios', paciente_id=paciente[0]) }}">
+    <button>Solicitar Laboratorios</button>
+</a>
+
+<hr>
+
+<h3>Notas de Ingreso</h3>
+{% for ingreso in ingresos %}
+    <p><strong>Fecha:</strong> {{ ingreso[6] }}</p>
+    <p><strong>Motivo:</strong> {{ ingreso[2] }}</p>
+    <p><strong>Diagnóstico:</strong> {{ ingreso[4] }}</p>
+    <hr>
+{% endfor %}
+
+<h3>Notas de Evolución</h3>
+{% for evo in evoluciones %}
+    <p><strong>Fecha:</strong> {{ evo[6] }}</p>
+    <p><strong>Análisis:</strong> {{ evo[4] }}</p>
+    <hr>
+{% endfor %}
+
+<h3>Indicaciones Médicas</h3>
+{% for ind in indicaciones %}
+    <p><strong>Fecha:</strong> {{ ind[6] }}</p>
+    <p><strong>Medicamentos:</strong> {{ ind[4] }}</p>
+    <hr>
+{% endfor %}
+
+<h3>Laboratorios</h3>
+{% for lab in labs %}
+    <p><strong>Fecha:</strong> {{ lab[4] }}</p>
+    <p><strong>Estudios:</strong> {{ lab[2] }}</p>
+    <hr>
+{% endfor %}
+
+<br>
+<a href="{{ url_for('dashboard') }}">Volver al inicio</a>
+
+</body>
+</html>
